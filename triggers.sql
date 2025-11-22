@@ -59,7 +59,6 @@ BEGIN
     RAISE EXCEPTION 'Нельзя создать матч: такая пара по этому навыку уже существует';
   END IF;
 
-  -- бизнес-действие: закрыть запрос
   IF NEW.request_id IS NOT NULL THEN
     UPDATE public.mentorship_requests
     SET status='matched', updated_at=now()
