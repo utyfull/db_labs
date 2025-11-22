@@ -1,0 +1,124 @@
+@startuml
+
+hide circle
+skinparam linetype ortho
+
+entity "users" as users {
+  *id : BIGSERIAL
+  --
+  full_name : TEXT
+  email : TEXT <<UNIQUE>>
+  bio : TEXT
+  avatar_url : TEXT
+  is_mentor : BOOLEAN
+  is_mentee : BOOLEAN
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+entity "skills" as skills {
+  *id : BIGSERIAL
+  --
+  name : TEXT <<UNIQUE>>
+  description : TEXT
+  created_at : TIMESTAMPTZ
+}
+
+entity "user_skills" as user_skills {
+  *user_id : BIGINT <<FK>>
+  *skill_id : BIGINT <<FK>>
+  --
+  proficiency : SMALLINT
+  years_experience : NUMERIC(4,1)
+  is_primary : BOOLEAN
+  added_at : TIMESTAMPTZ
+}
+
+entity "mentorship_requests" as requests {
+  *id : BIGSERIAL
+  --
+  mentee_id : BIGINT <<FK>>
+  skill_id : BIGINT <<FK>>
+  goal : TEXT
+  desired_proficiency : SMALLINT
+  status : TEXT
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+entity "mentorship_applications" as applications {
+  *id : BIGSERIAL
+  --
+  request_id : BIGINT <<FK>>
+  mentor_id : BIGINT <<FK>>
+  message : TEXT
+  status : TEXT
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+entity "mentorship_matches" as matches {
+  *id : BIGSERIAL
+  --
+  mentor_id : BIGINT <<FK>>
+  mentee_id : BIGINT <<FK>>
+  skill_id : BIGINT <<FK>>
+  request_id : BIGINT <<FK, NULL>>
+  status : TEXT
+  mentor_note : TEXT
+  mentee_note : TEXT
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+  started_at : TIMESTAMPTZ
+  ended_at : TIMESTAMPTZ
+  cancelled_at : TIMESTAMPTZ
+  cancel_reason : TEXT
+}
+
+entity "sessions" as sessions {
+  *id : BIGSERIAL
+  --
+  match_id : BIGINT <<FK>>
+  scheduled_at : TIMESTAMPTZ
+  duration_minutes : INTEGER
+  status : TEXT
+  meeting_link : TEXT
+  agenda : TEXT
+  notes : TEXT
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+  cancelled_at : TIMESTAMPTZ
+  cancel_reason : TEXT
+}
+
+entity "session_ratings" as ratings {
+  *id : BIGSERIAL
+  --
+  session_id : BIGINT <<FK>>
+  rater_id : BIGINT <<FK>>
+  rating : SMALLINT
+  comment : TEXT
+  created_at : TIMESTAMPTZ
+}
+
+' --- Relationships ---
+users  ||--o{ user_skills : has
+skills ||--o{ user_skills : includes
+
+users  ||--o{ requests : "creates (mentee)"
+skills ||--o{ requests : "for skill"
+
+requests ||--o{ applications : receives
+users    ||--o{ applications : "applies (mentor)"
+
+users  ||--o{ matches : "mentor"
+users  ||--o{ matches : "mentee"
+skills ||--o{ matches : "by skill"
+requests ||--o{ matches : "originates (optional)"
+
+matches ||--o{ sessions : schedules
+
+sessions ||--o{ ratings : gets
+users    ||--o{ ratings : "rates"
+
+@enduml
